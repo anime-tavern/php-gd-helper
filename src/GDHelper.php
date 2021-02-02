@@ -1,4 +1,8 @@
 <?php
+	/**
+	* @author Garet C. Green
+	*/
+
 	require_once __DIR__ . "/exceptions/FileNotFound.php";
 
 	class GDHelper{
