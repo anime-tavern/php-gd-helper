@@ -6,6 +6,7 @@
 	require_once __DIR__ . "/exceptions/FileNotFound.php";
 	require_once __DIR__ . "/exceptions/InvalidImage.php";
 	require_once __DIR__ . "/implementations/CropImage.php";
+	require_once __DIR__ . "/implementations/RotateImage.php";
 
 	class GDHelper{
 
@@ -37,6 +38,17 @@
 			$this->width = $imageInfo[0];
 			$this->height = $imageInfo[1];
 			$this->imageType = $imageInfo[2];
+		}
+
+		/**
+		* Rotates an image in degrees
+		* @param float $angleInDegrees
+		* @param int $backgroundFillColor (Optional) To fill space now unused by the image
+		* @return GDHelper A new instance of GDHelper with the cropped image
+		*/
+		public function rotate(float $angleInDegrees, int $backgroundFillColor = 0){
+			$rotateImage = new RotateImage($this);
+			return $rotateImage->rotate($angleInDegrees, $backgroundFillColor);
 		}
 
 		/**
