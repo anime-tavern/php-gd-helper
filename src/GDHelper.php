@@ -4,11 +4,18 @@
 	*/
 
 	require_once __DIR__ . "/exceptions/FileNotFound.php";
+	require_once __DIR__ . "/exceptions/InvalidImage.php";
+	require_once __DIR__ . "/implementations/CropImage.php";
 
 	class GDHelper{
 
-		public int $imageType;
 		public string $binary;
+		public int $width;
+		public int $height;
+		public int $imageType;
+
+		/** @var resource $resource Cannot type-hint Resources as of PHP 8. Is the image resource */
+		public $resource;
 
 		/**
 		* Constructs an instance with a file's binary
@@ -16,9 +23,66 @@
 		* @param string $binary
 		* @return GDHelper
 		*/
-		public function __construct(string $binary, int $imageType){
+		public function __construct(string $binary){
 			$this->binary = $binary;
-			$this->imageType = $imageType;
+			$this->resource = imagecreatefromstring($binary);
+
+			// Was the image parsable?
+			if ($this->resource === false){
+				throw new InvalidImage("The binary passed is not a valid image type.");
+			}
+
+			// Get the image's info
+			$imageInfo = getimagesizefromstring($this->binary);
+			$this->width = $imageInfo[0];
+			$this->height = $imageInfo[1];
+			$this->imageType = $imageInfo[2];
+		}
+
+		/**
+		* Crops an image
+		* @return GDHelper new instance
+		*/
+		public function crop(int $topX, int $topY, int $bottomX, int $bottomY){
+			$cropImage = new CropImage($this);
+			return $cropImage->crop($topX, $topY, $bottomX, $bottomY);
+		}
+
+		/**
+		* Crops an image from the center
+		* @return GDHelper new instance
+		*/
+		public function cropFromCenter(int $sizeX, int $sizeY){
+			$cropImage = new CropImage($this);
+			return $cropImage->cropFromCenter($sizeX, $sizeY);
+		}
+
+		/**
+		* Gets a base64 data string ready to be served
+		* over an HTTP stream. As a URL, image source, etc
+		* @return string
+		*/
+		public function toBase64DataString(){
+			$base64Image = base64_encode($this->binary);
+
+			switch ($this->imageType){
+				case IMAGETYPE_JPEG:
+					return "data:image/jpeg;base64,$base64Image";
+					break;
+				case IMAGETYPE_PNG:
+					return "data:image/png;base64,$base64Image";
+					break;
+				case IMAGETYPE_GIF:
+					return "data:image/gif;base64,$base64Image";
+					break;
+				case IMAGETYPE_GIF:
+					return "data:image/webp;base64,$base64Image";
+					break;
+				default:
+					break;
+			}
+
+			return "";
 		}
 
 		/**
@@ -27,13 +91,13 @@
 		* @param int $imageType
 		* @return GDHelper
 		*/
-		public static function fromFilePath(string $filePath, int $imageType){
+		public static function fromFilePath(string $filePath){
 			$filePath = realpath($filePath);
 			if (!$filePath){
 				throw new FileNotFound();
 			}
 
 			$binary = file_get_contents($filePath);
-			return new GDHelper($binary, $imageType);
+			return new GDHelper($binary);
 		}
 	}
