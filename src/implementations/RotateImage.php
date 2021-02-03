@@ -23,6 +23,7 @@
 			// Handle transparencies
 			$imageType = $this->gdHelper->imageType;
 			if ($imageType === IMAGETYPE_PNG || $imageType === IMAGETYPE_WEBP){
+				imagepalettetotruecolor($this->gdHelper->resource);
 				imagealphablending($this->gdHelper->resource, false);
 				imagesavealpha($this->gdHelper->resource, true);
 				$rotatedImage = imagerotate($this->gdHelper->resource, $angleInDegrees, imagecolorallocatealpha($this->gdHelper->resource, 0, 0, 0, 127));
