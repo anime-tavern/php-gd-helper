@@ -3,10 +3,14 @@
 
 	$pngImagePath = __DIR__ . "/example.png";
 	$gifImagePath = __DIR__ . "/example.gif";
+	$gif2ImagePath = __DIR__ . "/example-2.gif";
 	$gdHelper = GDHelper::fromFilePath($pngImagePath);
 
 	$gdHelper_gif = GDHelper::fromFilePath($gifImagePath);
 	$rotatedGif = $gdHelper_gif->rotate(45);
+
+	$gdHelper_gif2 = GDHelper::fromFilePath($gif2ImagePath);
+	$rotatedGif2 = $gdHelper_gif2->rotate(-45);
 
 	$croppedGDHelper = $gdHelper->cropFromCenter(300,300);
 	$rotatedImage = $croppedGDHelper->rotate(90);
@@ -24,3 +28,5 @@
 <img src="<?= $rotatedImage->toBase64DataString() ?>">
 <br>
 <img src="<?= $rotatedGif->toBase64DataString() ?>">
+<br>
+<img src="<?= $rotatedGif2->toBase64DataString() ?>">
