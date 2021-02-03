@@ -3,6 +3,7 @@
 	* @author Garet C. Green
 	*/
 
+	require_once __DIR__ . "/exceptions/AnimatedWebPNotSupported.php";
 	require_once __DIR__ . "/exceptions/FileNotFound.php";
 	require_once __DIR__ . "/exceptions/InvalidImage.php";
 	require_once __DIR__ . "/implementations/CropImage.php";
@@ -26,6 +27,15 @@
 		*/
 		public function __construct(string $binary){
 			$this->binary = $binary;
+
+			// Read the first 16 bytes to handle VP8X fatal error catching
+			// Animated WebP with VP8X will throw an uncatchable error.
+			// So we must try to identify it first
+			$firstBytes = substr($binary,0,16);
+			if (str_contains($firstBytes, "VP8X")){
+				throw new AnimatedWebPNotSupported("Animated WebP currently not supported by the PHP GD library.");
+			}
+
 			$this->resource = imagecreatefromstring($binary);
 
 			// Was the image parsable?
@@ -49,6 +59,15 @@
 		public function rotate(float $angleInDegrees, int $backgroundFillColor = 0){
 			$rotateImage = new RotateImage($this);
 			return $rotateImage->rotate($angleInDegrees, $backgroundFillColor);
+		}
+
+		/**
+		* Clears the stored GD resource
+		*/
+		public function clearResource(){
+			if ($this->resource !== null){
+				imagedestroy($this->resource);
+			}
 		}
 
 		/**
