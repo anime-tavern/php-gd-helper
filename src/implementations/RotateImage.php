@@ -1,16 +1,7 @@
 <?php
 	require_once __DIR__ . "/../GDHelper.php";
 	require_once __DIR__ . "/../helpers/ResourceToString.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/IO/PhpStream.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/IO/MemoryStream.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/IO/FileStream.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/Events/FrameDecodedEvent.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/Geometry/Point.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/Geometry/Rectangle.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/Decoder.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/Encoder.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/Frame.php";
-	require_once __DIR__ . "/../helpers/GIFEnDec/Color.php";
+	require_once __DIR__ . "/../helpers/GIFHelper/FrameIterator.php";
 
 	class RotateImage{
 
@@ -38,15 +29,8 @@
 				imagealphablending($rotatedImage, false);
 				imagesavealpha($rotatedImage, true);
 			}elseif ($imageType === IMAGETYPE_GIF){
-				$gifFileResource = tmpfile();
-				fwrite($gifFileResource, $this->gdHelper->binary);
-				$fileStream = new GIFEndec\IO\FileStream(stream_get_meta_data($gifFileResource)['uri']);
-				$gifEncoder = new GIFEndec\Encoder();
-				$gifDecoder = new GIFEndec\Decoder($fileStream);
-				$gifDecoder->decode(function(GIFEndec\Events\FrameDecodedEvent $event) use (&$angleInDegrees, $gifEncoder){
-					$frame = $event->decodedFrame;
-					$gdFrame = $frame->createGDImage();
-
+				$frameIterator = new FrameIterator($this->gdHelper);
+				$frameIterator->forEachFrame(function(&$gdImage) use (&$angleInDegrees){
 					// @WARNING
 					// The color returned here might not always be the one you expect.
 					// This could be because the image's color palette is full (Solved this with imagepalettetotruecolor)
@@ -54,25 +38,18 @@
 					// See the line below that performs setTransparentColor()
 					// and how that lime green is slightly different then the one directly below.
 					// No idea how to solve this issue other than statically like is done now.
-					imagepalettetotruecolor($gdFrame); // To allow for allocation below to work
-					$color = imagecolorallocatealpha($gdFrame,50,205,50,127);
-					$rotatedGDFrame = imagerotate($gdFrame, $angleInDegrees, $color);
-
-					// Write the now rotated frame into memory
-					$rotatedBinary = ResourceToString::getString($rotatedGDFrame, IMAGETYPE_GIF);
-					$stream = new GIFEndec\IO\MemoryStream();
-					$stream->writeString($rotatedBinary);
-					$rotatedFrame = new GIFEndec\Frame();
-					$rotatedFrame->setDisposalMethod(1);
-					$rotatedFrame->setStream($stream);
-					$rotatedFrame->setDuration($frame->getDuration());
-					$rotatedFrame->setTransparentColor(new GIFEndec\Color(52,206,52));
-					$rotatedFrame->setTransparent(true);//$frame->isTransparent());
-					$gifEncoder->addFrame($rotatedFrame);
+					imagepalettetotruecolor($gdImage); // To allow for allocation below to work
+					$color = imagecolorallocatealpha($gdImage,
+						FrameIterator::TRANSPARENT_COLOR[0],
+						FrameIterator::TRANSPARENT_COLOR[1],
+						FrameIterator::TRANSPARENT_COLOR[2],
+						127
+					);
+					$rotatedGDFrame = imagerotate($gdImage, $angleInDegrees, $color);
+					return $rotatedGDFrame;
 				});
 
-				$gifEncoder->addFooter();
-				return new GDHelper($gifEncoder->getStream()->getContents());
+				return $frameIterator->finishedGDHelper;
 			}else{
 				$rotatedImage = imagerotate($this->gdHelper->resource, $angleInDegrees, $backgroundFillColor);
 			}
