@@ -8,6 +8,7 @@
 	require_once __DIR__ . "/exceptions/InvalidImage.php";
 	require_once __DIR__ . "/implementations/CropImage.php";
 	require_once __DIR__ . "/implementations/RotateImage.php";
+	require_once __DIR__ . "/implementations/ResizeImage.php";
 
 	class GDHelper{
 
@@ -63,6 +64,15 @@
 		public function rotate(float $angleInDegrees, int $backgroundFillColor = 0){
 			$rotateImage = new RotateImage($this);
 			return $rotateImage->rotate($angleInDegrees, $backgroundFillColor);
+		}
+
+		/**
+		* Resizes an image with pixel interpolation
+		* @return GDHelper A new instance of GDHelper with the cropped image
+		*/
+		public function resize(int $x, int $y){
+			$resizeImage = new ResizeImage($this);
+			return $resizeImage->resize($x, $y);
 		}
 
 		/**

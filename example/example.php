@@ -5,34 +5,39 @@
 	$gifImagePath = __DIR__ . "/example.gif";
 	$gif2ImagePath = __DIR__ . "/example-2.gif";
 	$webpImagePath = __DIR__ . "/example.webp";
-	// $gdHelper = GDHelper::fromFilePath($pngImagePath);
-	//
-	// $gdHelper_gif = GDHelper::fromFilePath($gifImagePath);
-	// $rotatedGif = $gdHelper_gif->rotate(45);
-	// $rotatedGifBase64 = $rotatedGif->toBase64DataString();
-	// $gdHelper_gif->clearResource();
-	// $rotatedGif->clearResource();
+	$gdHelper_png = GDHelper::fromFilePath($pngImagePath);
+	$croppedGDHelper = $gdHelper_png->cropFromCenter(300,300);
+	$gdHelper_png->clearResource();
+	$croppedGDHelper->clearResource();
 
-	$gdHelper_webp = GDHelper::fromFilePath($webpImagePath);
-	//$roatedWebP = $gdHelper_webp->rotate(90);
+	$gdHelper_gif = GDHelper::fromFilePath($gifImagePath);
+	$croppedGif = $gdHelper_gif->cropFromCenter(100, 100);
+	$rotatedGif = $gdHelper_gif->rotate(45);
+	$gdHelper_gif->clearResource();
+	$rotatedGif->clearResource();
+	$croppedGif->clearResource();
 
-	// $croppedGDHelper = $gdHelper->cropFromCenter(300,300);
-	// $rotatedImage = $croppedGDHelper->rotate(90);
+	$rotatedImage = $croppedGDHelper->rotate(90);
+	$rotatedImage->clearResource();
+
+	$resizedPNG = $gdHelper_png->resize(100,100);
+	$resizedPNG->clearResource();
 ?>
 <strong>Original image</strong>
 <br>
-<img src="<?= $gdHelper->toBase64DataString() ?>">
+<img src="<?= $gdHelper_png->toBase64DataString() ?>">
 <br>
 <strong>Cropped image</strong>
 <br>
 <img src="<?= $croppedGDHelper->toBase64DataString() ?>">
+<br>
+<img src="<?= $croppedGif->toBase64DataString() ?>">
 <br>
 <strong>Rotated image</strong>
 <br>
 <img src="<?= $rotatedImage->toBase64DataString() ?>">
 <br>
 <img src="<?= $rotatedGif->toBase64DataString() ?>">
+<strong>Resized image</strong>
 <br>
-<img src="<?= $rotatedGif2->toBase64DataString() ?>">
-<br>
-<img src="<?= $roatedWebP->toBase64DataString() ?>">
+<img src="<?= $resizedPNG->toBase64DataString() ?>">
