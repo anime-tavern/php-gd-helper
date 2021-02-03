@@ -49,11 +49,12 @@
 
 					// @WARNING
 					// The color returned here might not always be the one you expect.
-					// This could be because the image's color palette is full.
+					// This could be because the image's color palette is full (Solved this with imagepalettetotruecolor)
 					// Additionally, it could just be off because of the interpolation method.
 					// See the line below that performs setTransparentColor()
 					// and how that lime green is slightly different then the one directly below.
 					// No idea how to solve this issue other than statically like is done now.
+					imagepalettetotruecolor($gdFrame); // To allow for allocation below to work
 					$color = imagecolorallocatealpha($gdFrame,50,205,50,127);
 					$rotatedGDFrame = imagerotate($gdFrame, $angleInDegrees, $color);
 
