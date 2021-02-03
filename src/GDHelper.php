@@ -31,9 +31,13 @@
 			// Read the first 16 bytes to handle VP8X fatal error catching
 			// Animated WebP with VP8X will throw an uncatchable error.
 			// So we must try to identify it first
-			$firstBytes = substr($binary,0,16);
-			if (str_contains($firstBytes, "VP8X")){
-				throw new AnimatedWebPNotSupported("Animated WebP currently not supported by the PHP GD library.");
+			$firstBytes = substr($binary,12,4);
+			if ($firstBytes === "VP8X"){
+				$animFlag = substr($binary,16,1);
+				$isAnimated = ((ord($animFlag) >> 1) & 1) ? true : false;
+				if ($isAnimated){
+					throw new AnimatedWebPNotSupported("Animated WebP currently not supported by the PHP GD library.");
+				}
 			}
 
 			$this->resource = imagecreatefromstring($binary);
